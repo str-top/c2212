@@ -1,0 +1,29 @@
+#include <IRremote.h>        // библиотека для ИК датчика
+
+IRrecv irrecv(A1);           // пин A1 для подключения ИК-приёмника
+decode_results results;
+
+void setup() {
+  Serial.begin(9600);        // монитор порта
+  irrecv.enableIRIn();       // запускаем приём инфракрасного сигнала
+  
+  pinMode(12, OUTPUT);       // пин 12 как выход (для светодиода/реле)
+  pinMode(A1, INPUT);        // пин A1 как вход (ИК-приёмник)
+}
+
+void loop() {
+  // если пришли данные с пульта
+  if (irrecv.decode(&results)) {
+    Serial.println(results.value);  // выводим полученный код в монитор порта
+
+    // включаем и выключаем светодиод в зависимости от команды
+    if (results.value == 16718055) {   // кнопка "ON"
+      digitalWrite(12, HIGH);
+    }
+    if (results.value == 16724175) {   // кнопка "OFF"
+      digitalWrite(12, LOW);
+    }
+
+    irrecv.resume();  // ждём следующий сигнал
+  }
+}
