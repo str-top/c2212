@@ -1,0 +1,30 @@
+#include <IRremote.h>   // библиотека для ИК пульта
+#include <Servo.h>      // библиотека для сервопривода
+
+IRrecv irrecv(A1);      // пин A1 для ИК-приёмника
+decode_results results; // объект для хранения данных ИК сигнала
+
+Servo myservo;          // объект для управления сервоприводом
+
+void setup() {
+  Serial.begin(9600);       // подключаем монитор порта
+  irrecv.enableIRIn();      // запускаем приём ИК-сигнала
+  myservo.attach(9);        // подключаем сервопривод к пину 9
+}
+
+void loop() {
+  // проверяем, пришёл ли сигнал с пульта
+  if (irrecv.decode(&results)) {
+    Serial.println(results.value);  // выводим код кнопки в монитор порта
+
+    // поворачиваем серво в зависимости от полученного кода
+    if (results.value == 16718055) {  
+      myservo.write(0);    // поворот на 0°
+    }
+    if (results.value == 16724175) {  
+      myservo.write(90);   // поворот на 90°
+    }
+
+    irrecv.resume();  // ждём следующий сигнал
+  }
+}
