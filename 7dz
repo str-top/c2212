@@ -1,0 +1,78 @@
+#include <Adafruit_NeoPixel.h>
+
+#define LED_PIN     6
+#define LED_COUNT   8
+#define BUTTON_PIN  2
+
+const unsigned long LONG_MS    = 1000; // порог длительного нажатия (мс)
+const unsigned long DEBOUNCE_MS = 50;  // антидребезг (мс)
+
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
+
+uint32_t colors[] = {
+  0xFF0000, // red
+  0x00FF00, // green
+  0x0000FF, // blue
+  0xFFFF00, // yellow
+  0x00FFFF, // cyan
+  0xFF00FF, // magenta
+  0xFFFFFF  // white
+};
+const int numColors = sizeof(colors) / sizeof(colors[0]);
+int colorIndex = 0;
+
+bool lastDebouncedPressed = false;
+unsigned long lastBounceTime = 0;
+unsigned long pressStart = 0;
+bool longHandled = false;
+
+void setup() {
+  pinMode(BUTTON_PIN, INPUT_PULLUP); // кнопка к GND, подтяжка внутренняя
+  Serial.begin(9600);
+  strip.begin();
+  strip.show();
+  setColor(colors[colorIndex]);
+}
+
+void loop() {
+  bool rawPressed = (digitalRead(BUTTON_PIN) == LOW);
+  unsigned long now = millis();
+
+  // антидребезг — фиксируем изменение только если прошло DEBOUNCE_MS
+  if (rawPressed != lastDebouncedPressed) {
+    if (now - lastBounceTime > DEBOUNCE_MS) {
+      lastBounceTime = now;
+      // состояние действительно изменилось
+      if (rawPressed) {
+        // кнопка только что нажата
+        pressStart = now;
+        longHandled = false;
+      } else {
+        // кнопка только что отпущена -> смена цвета при отпускании
+        nextColor();
+      }
+      lastDebouncedPressed = rawPressed;
+    }
+  } else {
+    // состояние стабильно — проверяем длительное удержание
+    if (rawPressed && !longHandled && (now - pressStart >= LONG_MS)) {
+      // длительное нажатие: одна смена
+      nextColor();
+      longHandled = true;
+    }
+  }
+
+  // (другие задачи) ...
+}
+
+void nextColor() {
+  colorIndex = (colorIndex + 1) % numColors;
+  setColor(colors[colorIndex]);
+  Serial.print("Color -> ");
+  Serial.println(colorIndex);
+}
+
+void setColor(uint32_t c) {
+  for (int i = 0; i < LED_COUNT; i++) strip.setPixelColor(i, c);
+  strip.show();
+}
