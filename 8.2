@@ -1,0 +1,33 @@
+#include <Servo.h>
+
+Servo myServo;
+
+int potPin = A1;
+int servoPin = 5;
+
+int angle = 0;          // текущее положение
+int direction = 1;      // 1 = вправо, -1 = влево
+
+void setup() {
+  myServo.attach(servoPin);
+  myServo.write(angle);
+}
+
+void loop() {
+  int potValue = analogRead(potPin); 
+  int speed = map(potValue, 0, 1023, 1, 20);  // шаг угла за цикл (скорость)
+
+  angle += direction * speed;
+
+  // разворот на концах
+  if (angle >= 180) {
+    angle = 180;
+    direction = -1;
+  } else if (angle <= 0) {
+    angle = 0;
+    direction = 1;
+  }
+
+  myServo.write(angle);
+  delay(20);  // задержка цикла (чем меньше, тем плавнее)
+}
