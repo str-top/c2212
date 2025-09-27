@@ -2,16 +2,23 @@
 
 Servo myServo;
 
-int potPin = A1;   // вход для потенциометра
-int servoPin = 5;  // выход для сервопривода
+int potPin = A1;   
+int servoPin = 5;  
+
+float filteredAngle = 90;  // начальное положение (среднее)
+float alpha = 0.1;         // коэффициент фильтрации (0.0–1.0, меньше = плавнее)
 
 void setup() {
   myServo.attach(servoPin);
 }
 
 void loop() {
-  int potValue = analogRead(potPin);              // читаем потенциометр (0–1023)
-  int angle = map(potValue, 0, 1023, 0, 180);     // масштабируем в угол (0–180°)
-  myServo.write(angle);                           // задаём угол сервоприводу
-  delay(15);                                      // небольшая задержка для плавности
+  int potValue = analogRead(potPin);               // читаем потенциометр (0–1023)
+  int targetAngle = map(potValue, 0, 1023, 0, 180);// целевой угол
+
+  // Экспоненциальное сглаживание
+  filteredAngle = alpha * targetAngle + (1 - alpha) * filteredAngle;
+
+  myServo.write((int)filteredAngle);               // плавно обновляем положение
+  delay(15);                                       // пауза для плавности
 }
