@@ -1,0 +1,17 @@
+#include <Servo.h>
+
+Servo myServo;
+
+int potPin = A1;   // вход для потенциометра
+int servoPin = 5;  // выход для сервопривода
+
+void setup() {
+  myServo.attach(servoPin);
+}
+
+void loop() {
+  int potValue = analogRead(potPin);              // читаем потенциометр (0–1023)
+  int angle = map(potValue, 0, 1023, 0, 180);     // масштабируем в угол (0–180°)
+  myServo.write(angle);                           // задаём угол сервоприводу
+  delay(15);                                      // небольшая задержка для плавности
+}
