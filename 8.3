@@ -1,1 +1,53 @@
-d
+#include <Servo.h>   // подключаем библиотеку сервопривода
+
+Servo myServo;       // создаём объект сервопривода
+String message;      // переменная для хранения данных из порта
+
+void setup() {
+  Serial.begin(9600);   // инициализация последовательного соединения
+  pinMode(9, OUTPUT);   // пин 9 — светодиод (индикатор)
+  pinMode(7, OUTPUT);   // пин 7 — пьезодинамик
+  Serial.println("Система готова. Введите 'open' или 'lock'");
+}
+
+void loop() {
+  if (Serial.available() > 0) {         // если есть входящие данные
+    message = Serial.readString();      // читаем строку
+    message.trim();                     // убираем пробелы и переводы строки
+
+    if (message == "open") {            // если пришла команда "open"
+      myServo.attach(8);                // подключаем сервопривод (пин 8)
+      myServo.write(0);                 // поворот на 0°
+      beepOpen();                       // звуковой сигнал
+      myServo.detach();                 // отключаем сервопривод
+      digitalWrite(9, LOW);             // гасим светодиод
+      Serial.println("Замок открыт");
+    }
+
+    else if (message == "lock") {       // если пришла команда "lock"
+      myServo.attach(8);
+      myServo.write(180);               // поворот на 180°
+      beepLock();                       // звуковой сигнал
+      myServo.detach();
+      digitalWrite(9, HIGH);            // зажигаем светодиод
+      Serial.println("Замок закрыт");
+    }
+
+    else {
+      Serial.println("Неизвестная команда. Введите 'open' или 'lock'.");
+    }
+  }
+}
+
+// --- вспомогательные функции ---
+void beepOpen() {
+  tone(7, 200, 50); delay(100);
+  tone(7, 400, 50); delay(100);
+  tone(7, 500, 50); delay(100);
+}
+
+void beepLock() {
+  tone(7, 200, 50); delay(100);
+  tone(7, 200, 50); delay(100);
+  tone(7, 200, 50); delay(100);
+}
