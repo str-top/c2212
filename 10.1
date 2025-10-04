@@ -1,0 +1,33 @@
+#include <SPI.h>
+#include <MFRC522.h>
+
+// --- Pin definitions ---
+#define RST_PIN 9   // Reset pin (RST)
+#define SS_PIN 10   // Slave Select (SDA/SS)
+
+// --- Create RFID reader instance ---
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+
+void setup() {
+  Serial.begin(9600);
+  SPI.begin();                 // инициализация SPI-шины
+  mfrc522.PCD_Init();          // инициализация модуля MFRC522
+  delay(4);
+
+  // вывод информации о модуле
+  mfrc522.PCD_DumpVersionToSerial();
+  Serial.println(F("\nПриложите карту, чтобы увидеть UID, SAK, тип и содержимое блоков..."));
+}
+
+void loop() {
+  // если нет новой карты — выходим
+  if (!mfrc522.PICC_IsNewCardPresent()) return;
+  // если карту не удалось считать — выходим
+  if (!mfrc522.PICC_ReadCardSerial()) return;
+
+  // выводим полную информацию о карте
+  mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
+
+  // можно добавить паузу для удобства
+  delay(1000);
+}
